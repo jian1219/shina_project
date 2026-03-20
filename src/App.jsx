@@ -116,7 +116,7 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-slate-900 pb-24">
+    <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
 
       {/* LOGIN PAGE */}
       {page === "login" && (
@@ -175,7 +175,7 @@ export default function App() {
 
       {/* DESTINATIONS LIST PAGE */}
       {page === "destinations" && (
-        <div className="p-6">
+        <div className="p-6 pb-24">
           <header className="flex justify-between items-center mb-6">
             <div>
               <p className="text-gray-500 text-sm">Discover</p>
