@@ -1,42 +1,51 @@
 import { useState, useEffect } from "react";
 import { MapPin, Search, Star, ArrowLeft, Heart, Navigation, User, Home, BookOpen } from "lucide-react";
 
+import img1 from './img/inn1.png';
+import inn2 from './img/inn2.png';
+import inn3 from './img/inn3.png';
+import img11 from './img/img11.jpg';
+import img12 from './img/img12.jpg';
+import img31 from './img/img31.jpg';
+import img32 from './img/img32.png';
+
+
 const destinationsData = [
   {
     id: 1,
-    name: "Siargao Island",
-    location: "Surigao del Norte",
+    name: "Hidden Nav's Inn",
+    location: "Cabadbaran, Agusan del Norte",
     rating: 4.9,
     price: "₱2,500",
-    description: "The surfing capital of the Philippines. Beyond the waves, explore the Cloud 9 boardwalk, Magpupungko Rock Pools, and the vast coconut plantations.",
+    description: "The nice place to sleep",
     images: [
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-      "https://images.unsplash.com/photo-1549887534-5f7b0c5a7c83",
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
+      img1,
+      inn2,
+      inn3
     ]
   },
   {
     id: 2,
-    name: "El Nido, Palawan",
-    location: "Palawan",
+    name: "The Puting Bato",
+    location: "Cabadbaran, Agusan del Norte",
     rating: 4.8,
-    price: "₱4,200",
-    description: "Discover hidden lagoons and towering limestone cliffs. El Nido is a gateway to the Bacuit Archipelago, a place of immense natural beauty.",
+    price: "₱200",
+    description: "The area is home to natural water features, including the Tumipi Cold Spring, which is often visited along with the view deck.",
     images: [
-      "https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86",
-      "https://images.unsplash.com/photo-1526772662000-3f88f10405ff"
+      img11,
+      img12
     ]
   },
   {
     id: 3,
-    name: "Boracay Island",
-    location: "Aklan",
+    name: "Tagnote Falls",
+    location: "RTR Agusan del Norte",
     rating: 4.7,
-    price: "₱3,800",
+    price: "₱100",
     description: "Famous for its powdery white sand and vibrant sunset sailing. Experience the best nightlife and water sports in the country.",
     images: [
-      "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
-      "https://images.unsplash.com/photo-1526481280690-2c8e71f95aa9"
+      img32,
+      img31
     ]
   },
 ];
