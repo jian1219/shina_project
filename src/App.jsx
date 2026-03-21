@@ -178,8 +178,27 @@ useEffect(() => {
     visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
   };
 
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Load preference from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") setDarkMode(true);
+  }, []);
+
+  // Update localStorage and document class when darkMode changes
+  useEffect(() => {
+    if (darkMode) {
+      localStorage.setItem("theme", "dark");
+    } else {
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
+
+      
 
       {/* FULL SCREEN GALLERY MODAL */}
       <AnimatePresence>
@@ -234,7 +253,7 @@ useEffect(() => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
+           
             className="relative h-screen w-full overflow-hidden"
           >
             {/* Background Image with subtle zoom scale animation */}
@@ -372,7 +391,6 @@ useEffect(() => {
         </motion.div>
       )}
 
-    
       {/* DETAILS PAGE */}
         {page === "details" && selectedDestination && (
         <div className="bg-white min-h-screen pb-32">
@@ -458,7 +476,6 @@ useEffect(() => {
         </div>
       )}
 
-
       {/* OTHER PAGES (Bookings/Profile) can follow similar card-based styling */}
       {page === "bookings" && (
         <motion.div 
@@ -524,91 +541,134 @@ useEffect(() => {
           <NavBar />
         </motion.div>
       )}
+
       {/* PROFILE PAGE */}
       {page === "profile" && (
-        <div className="min-h-screen bg-gray-50 pb-28">
-          {/* Header Backdrop */}
-          <div className="h-40 bg-blue-600 rounded-b-[3rem] shadow-lg relative">
+        <motion.div 
+          key="profile"
+          initial="hidden"
+          animate="visible"
+          exit={{ opacity: 0, y: 20 }}
+          variants={containerVariants}
+          className="min-h-screen bg-gray-50 pb-28"
+        >
+          {/* Header Backdrop - Slides down from top */}
+          <motion.div 
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring", damping: 20 }}
+            className="h-40 bg-blue-600 rounded-b-[3rem] shadow-lg relative"
+          >
             <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
-              <div className="w-24 h-24 rounded-3xl bg-white p-1 shadow-xl">
+              {/* Profile Pic - Pops out with a bounce */}
+              <motion.div 
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                className="w-24 h-24 rounded-3xl bg-white p-1 shadow-xl"
+              >
                 <div className="w-full h-full rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold">
                   {user?.name[0]}
                 </div>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* User Info */}
-          <div className="mt-16 text-center px-6">
+          {/* User Info - Fades and slides up */}
+          <motion.div 
+            variants={itemVariants}
+            className="mt-16 text-center px-6"
+          >
             <h1 className="text-2xl font-bold text-slate-900">{user?.name}</h1>
             <p className="text-gray-500 text-sm">{user?.email}</p>
             
-            {/* Travel Stats Cards */}
+            {/* Travel Stats Cards - Staggered entrance */}
             <div className="flex justify-between gap-4 mt-8">
-              <div className="flex-1 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                <p className="text-xl font-bold text-blue-600">{bookings.length}</p>
-                <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Trips</p>
-              </div>
-              <div className="flex-1 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                <p className="text-xl font-bold text-blue-600">12</p>
-                <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Reviews</p>
-              </div>
-              <div className="flex-1 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                <p className="text-xl font-bold text-blue-600">3</p>
-                <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Badges</p>
-              </div>
+              {[
+                { label: "Trips", value: bookings.length },
+                { label: "Reviews", value: 12 },
+                { label: "Badges", value: 3 }
+              ].map((stat, i) => (
+                <motion.div 
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 + (i * 0.1) }}
+                  whileHover={{ y: -5 }}
+                  className="flex-1 bg-white p-4 rounded-2xl shadow-sm border border-gray-100"
+                >
+                  <p className="text-xl font-bold text-blue-600">{stat.value}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{stat.label}</p>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Settings & Preferences */}
           <div className="px-6 mt-8 space-y-6">
-            <div>
+            <motion.div variants={itemVariants}>
               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Account</h3>
               <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100">
-                <button className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-50">
+                <motion.button whileTap={{ backgroundColor: "#f9fafb" }} className="w-full flex items-center justify-between p-4 border-b border-gray-50">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><User size={18} /></div>
                     <span className="font-medium text-slate-700">Personal Information</span>
                   </div>
                   <span className="text-gray-300">→</span>
-                </button>
-                <button onClick={() => setPage("bookings")} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-50">
+                </motion.button>
+                
+                <motion.button 
+                  whileTap={{ backgroundColor: "#f9fafb" }}
+                  onClick={() => setPage("bookings")} 
+                  className="w-full flex items-center justify-between p-4"
+                >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-purple-50 text-purple-600 rounded-lg"><BookOpen size={18} /></div>
                     <span className="font-medium text-slate-700">My Bookings</span>
                   </div>
                   <span className="text-gray-300">→</span>
-                </button>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
 
-            <div>
+            <motion.div variants={itemVariants}>
               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Preferences</h3>
               <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-700 font-medium">Dark Mode</span>
-                  <div className="w-10 h-5 bg-gray-200 rounded-full relative">
-                    <div className="absolute left-1 top-1 bg-white w-3 h-3 rounded-full shadow-sm" />
+                  {/* Simple toggle animation */}
+                  <div className="w-10 h-5 bg-gray-200 rounded-full relative cursor-pointer">
+                    <motion.div 
+                      layout 
+                      className="absolute left-1 top-1 bg-white w-3 h-3 rounded-full shadow-sm" 
+                    />
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-700 font-medium">Notifications</span>
                   <div className="w-10 h-5 bg-blue-500 rounded-full relative">
-                    <div className="absolute right-1 top-1 bg-white w-3 h-3 rounded-full shadow-sm" />
+                    <motion.div 
+                      layout 
+                      className="absolute right-1 top-1 bg-white w-3 h-3 rounded-full shadow-sm" 
+                    />
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <button 
+            <motion.button 
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={logout}
-              className="w-full bg-red-50 text-red-500 font-bold py-4 rounded-2xl hover:bg-red-100 transition-colors"
+              className="w-full bg-red-50 text-red-500 font-bold py-4 rounded-2xl transition-colors"
             >
               Log Out
-            </button>
+            </motion.button>
           </div>
+          
           <NavBar />
-        </div>
+        </motion.div>
       )}
 
     </div>
