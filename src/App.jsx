@@ -215,34 +215,94 @@ useEffect(() => {
 
       {/* LOGIN PAGE */}
       {page === "login" && (
-        <div className="h-screen flex flex-col justify-center p-8 bg-gradient-to-br from-blue-50 to-white">
-          <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Welcome.</h1>
-            <p className="text-gray-500 mb-8">Sign in to start your adventure.</p>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="relative h-screen flex flex-col justify-center p-8 overflow-hidden"
+        >
+          {/* Animated Background Image */}
+          <motion.div 
+            initial={{ scale: 1.1 }}
+            animate={{ scale: 1, x: [-10, 10, -10] }} // Subtle panning and zooming
+            transition={{ 
+              scale: { duration: 10, ease: "easeOut" }, 
+              x: { duration: 20, repeat: Infinity, ease: "linear" } 
+            }}
+            className="absolute inset-0 z-0"
+            style={{
+              backgroundImage: 'url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop")',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            {/* Dark overlay to make the login card pop */}
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
+          </motion.div>
+
+          {/* Login Card */}
+          <motion.div 
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.6, type: "spring" }}
+            className="relative z-10 bg-white/95 backdrop-blur-md p-8 rounded-[2.5rem] shadow-2xl border border-white/20"
+          >
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <h1 className="text-4xl font-extrabold text-gray-900 mb-2">Welcome.</h1>
+              <p className="text-gray-500 mb-8">Sign in to start your adventure.</p>
+            </motion.div>
+
             <div className="space-y-4">
-              <input
+              <motion.input
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
                 type="text"
                 placeholder="Full Name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full bg-gray-50 border-none p-4 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full bg-gray-100/50 border-none p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all outline-none"
               />
-              <input
+              
+              <motion.input
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
                 type="email"
                 placeholder="Email Address"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full bg-gray-50 border-none p-4 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full bg-gray-100/50 border-none p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all outline-none"
               />
-              <button
+
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={handleLogin}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-95"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl shadow-xl shadow-blue-500/30 transition-all mt-4"
               >
                 Let's Go
-              </button>
+              </motion.button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+
+          {/* Subtle bottom footer text */}
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.7 }}
+            transition={{ delay: 1 }}
+            className="relative z-10 text-center mt-8 text-white text-sm font-medium"
+          >
+            Explore the world with us
+          </motion.p>
+        </motion.div>
       )}
 
       {/* HOME PAGE */}
@@ -392,73 +452,136 @@ useEffect(() => {
       )}
 
       {/* DETAILS PAGE */}
-        {page === "details" && selectedDestination && (
-        <div className="bg-white min-h-screen pb-32">
-          <div className="relative h-[40vh] cursor-pointer" onClick={() => setFullScreenImage(selectedDestination.images[0])}>
-            <img src={selectedDestination.images[0]} className="w-full h-full object-cover" alt="Main" />
-            <button onClick={(e) => { e.stopPropagation(); setPage("destinations"); }} className="absolute top-6 left-6 p-3 bg-black/20 backdrop-blur-md rounded-xl text-white"><ArrowLeft size={24} /></button>
+      {page === "details" && selectedDestination && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="bg-white min-h-screen"
+        >
+          {/* Animated Header Image */}
+          <div className="relative h-[40vh] overflow-hidden cursor-pointer" onClick={() => setFullScreenImage(selectedDestination.images[0])}>
+            <motion.img 
+              initial={{ scale: 1.2 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.8 }}
+              src={selectedDestination.images[0]} 
+              className="w-full h-full object-cover" 
+              alt="Main" 
+            />
+            <motion.button 
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              onClick={(e) => { e.stopPropagation(); setPage("destinations"); }} 
+              className="absolute top-6 left-6 p-3 bg-black/20 backdrop-blur-md rounded-xl text-white"
+            >
+              <ArrowLeft size={24} />
+            </motion.button>
           </div>
 
-          <div className="-mt-10 relative bg-white rounded-t-[2.5rem] p-8">
+          {/* Content Card - Slides up from the bottom */}
+          <motion.div 
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, type: "spring", damping: 25 }}
+            className="-mt-10 relative bg-white rounded-t-[2.5rem] p-8 shadow-2xl"
+          >
             <div className="flex justify-between items-start mb-6">
-              <div>
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
                 <h1 className="text-3xl font-bold">{selectedDestination.name}</h1>
-                <p className="text-gray-500 flex items-center gap-1 mt-1"><MapPin size={16} className="text-blue-500" /> {selectedDestination.location}</p>
-              </div>
-              <div className="text-right">
+                <p className="text-gray-500 flex items-center gap-1 mt-1">
+                  <MapPin size={16} className="text-blue-500" /> {selectedDestination.location}
+                </p>
+              </motion.div>
+              <motion.div 
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-right"
+              >
                 <p className="text-2xl font-bold text-blue-600">{selectedDestination.price}</p>
                 <p className="text-xs text-gray-400">per person</p>
-              </div>
+              </motion.div>
             </div>
 
-            {/* GALLERY GRID */}
+            {/* GALLERY GRID with Staggered Animation */}
             <h3 className="font-bold text-sm uppercase text-gray-400 tracking-widest mb-4">Gallery</h3>
-            <div className="grid grid-cols-4 gap-3 mb-8">
+            <motion.div 
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-4 gap-3 mb-8"
+            >
               {selectedDestination.images.map((img, i) => (
-                <div key={i} onClick={() => setFullScreenImage(img)} className="aspect-square rounded-2xl overflow-hidden shadow-sm cursor-pointer border-2 border-white">
+                <motion.div 
+                  key={i} 
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setFullScreenImage(img)} 
+                  className="aspect-square rounded-2xl overflow-hidden shadow-sm cursor-pointer border-2 border-white"
+                >
                   <img src={img} className="w-full h-full object-cover" alt="gallery" />
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
 
-            <h3 className="font-bold text-lg mb-4">Location</h3>
-            <div className="h-64 w-full rounded-3xl overflow-hidden shadow-inner border-4 border-gray-50 z-0 relative">
+            <motion.h3 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="font-bold text-lg mb-4">Location</motion.h3>
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="h-64 w-full rounded-3xl overflow-hidden shadow-inner border-4 border-gray-50 z-0 relative"
+            >
               <MapContainer 
                 center={selectedDestination.coordinates} 
                 zoom={13} 
                 scrollWheelZoom={false} 
                 style={{ height: '100%', width: '100%' }}
               >
-                <TileLayer
-                  attribution='&copy; OpenStreetMap contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <Marker position={selectedDestination.coordinates}>
-                  <Popup>
-                    <span className="font-bold">{selectedDestination.name}</span> <br />
-                    {selectedDestination.location}
-                  </Popup>
+                  <Popup><span className="font-bold">{selectedDestination.name}</span></Popup>
                 </Marker>
               </MapContainer>
-            </div>
+            </motion.div>
 
-            <h3 className="font-bold text-lg mb-2">Overview</h3>
-            <p className="text-gray-500 leading-relaxed mb-8">{selectedDestination.description}</p>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}>
+              <h3 className="font-bold text-lg mt-8 mb-2">Overview</h3>
+              <p className="text-gray-500 leading-relaxed mb-8">{selectedDestination.description}</p>
+            </motion.div>
 
             {/* REVIEW SECTION */}
             <div className="border-t pt-8">
               <h3 className="font-bold text-xl mb-4">Reviews</h3>
-              <div className="bg-gray-50 p-6 rounded-3xl mb-8">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="bg-gray-50 p-6 rounded-3xl mb-8"
+              >
                 <div className="flex gap-2 mb-4">
-                  {[1,2,3,4,5].map(s => <Star key={s} size={24} onClick={() => setNewRating(s)} className={`cursor-pointer ${s <= newRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />)}
+                  {[1,2,3,4,5].map(s => <Star key={s} size={24} onClick={() => setNewRating(s)} className={`cursor-pointer transition-colors ${s <= newRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />)}
                 </div>
                 <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Write a review..." className="w-full p-4 rounded-xl border-none ring-1 ring-gray-200 outline-none h-20 text-sm mb-4" />
-                <button onClick={handleAddReview} className="bg-slate-900 text-white px-6 py-2 rounded-xl text-sm font-bold">Post Review</button>
-              </div>
+                <button onClick={handleAddReview} className="bg-slate-900 text-white px-6 py-2 rounded-xl text-sm font-bold active:scale-95 transition-transform">Post Review</button>
+              </motion.div>
 
               <div className="space-y-6">
-                {comments.filter(c => c.destinationId === selectedDestination.id).reverse().map(review => (
-                  <div key={review.id} className="border-b border-gray-100 pb-4">
+                {comments.filter(c => c.destinationId === selectedDestination.id).reverse().map((review, idx) => (
+                  <motion.div 
+                    key={review.id} 
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    viewport={{ once: true }}
+                    className="border-b border-gray-100 pb-4"
+                  >
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-bold text-sm">{review.userName}</span>
                       <div className="flex gap-1">
@@ -466,16 +589,23 @@ useEffect(() => {
                       </div>
                     </div>
                     <p className="text-gray-600 text-sm">{review.text}</p>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
 
-            <button onClick={() => addBooking(selectedDestination)} className="w-full bg-blue-600 text-white py-5 rounded-3xl font-bold mt-8 shadow-xl active:scale-95 transition-all">Book Trip Now</button>
-          </div>
-        </div>
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => addBooking(selectedDestination)} 
+              className="w-full bg-blue-600 text-white py-5 rounded-3xl font-bold mt-8 shadow-xl shadow-blue-100 transition-all"
+            >
+              Book Trip Now
+            </motion.button>
+          </motion.div>
+        </motion.div>
       )}
-
+ 
       {/* OTHER PAGES (Bookings/Profile) can follow similar card-based styling */}
       {page === "bookings" && (
         <motion.div 
