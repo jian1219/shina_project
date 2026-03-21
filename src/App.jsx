@@ -1,5 +1,20 @@
 import { useState, useEffect } from "react";
 import { MapPin, Search, Star, ArrowLeft, Heart, Navigation, User, Home, BookOpen } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 import img1 from './img/inn1.png';
 import inn2 from './img/inn2.png';
@@ -17,6 +32,7 @@ const destinationsData = [
     location: "Cabadbaran, Agusan del Norte",
     rating: 4.9,
     price: "₱2,500",
+    coordinates: [9.130966158730411, 125.53983102062428],
     description: "The nice place to sleep",
     images: [
       img1,
@@ -59,6 +75,15 @@ export default function App() {
   const [selectedDestination, setSelectedDestination] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const [newRating, setNewRating] = useState(5); // Default to 5 stars
+  const [fullScreenImage, setFullScreenImage] = useState(null);
+
+
+// Update your useEffect to filter comments based on the selected destination
+useEffect(() => {
+  const savedComments = JSON.parse(localStorage.getItem("all_comments")) || [];
+  setComments(savedComments);
+}, [selectedDestination]);
 
   useEffect(() => {
     const savedBookings = JSON.parse(localStorage.getItem("bookings")) || [];
@@ -96,6 +121,27 @@ export default function App() {
   const filtered = destinationsData.filter((d) =>
     d.name.toLowerCase().includes(search.toLowerCase())
   );
+  
+  const handleAddReview = () => {
+    if (!newComment.trim()) return alert("Please write a comment");
+
+    const reviewObj = {
+      id: Date.now(),
+      destinationId: selectedDestination.id,
+      userName: user?.name || "Anonymous",
+      rating: newRating,
+      text: newComment,
+      date: new Date().toLocaleDateString(),
+    };
+
+    const updatedComments = [...comments, reviewObj];
+    setComments(updatedComments);
+    localStorage.setItem("all_comments", JSON.stringify(updatedComments));
+    
+    setNewComment(""); // Clear input
+    setNewRating(5);   // Reset rating
+  };
+  
 
   // --- REUSABLE NAVBAR COMPONENT ---
   const NavBar = () => (
@@ -115,8 +161,38 @@ export default function App() {
     </div>
   );
 
+  // 1. Define animation variants for the list container
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1, // This makes items appear one after another
+      },
+    },
+  };
+
+  // 2. Define animation variants for individual items
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
+
+      {/* FULL SCREEN GALLERY MODAL */}
+      <AnimatePresence>
+        {fullScreenImage && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4"
+          >
+            <button onClick={() => setFullScreenImage(null)} className="absolute top-8 left-8 p-4 bg-white/10 rounded-2xl text-white"><ArrowLeft size={24} /></button>
+            <motion.img layoutId="activeImage" src={fullScreenImage} className="max-w-full max-h-[80vh] rounded-xl object-contain" />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* LOGIN PAGE */}
       {page === "login" && (
@@ -151,32 +227,76 @@ export default function App() {
       )}
 
       {/* HOME PAGE */}
-      {page === "home" && (
-        <div className="relative h-screen w-full overflow-hidden">
-          <img
-            src="https://images.unsplash.com/photo-1501785888041-af3ef285b470"
-            className="absolute w-full h-full object-cover scale-110 animate-pulse-slow"
-            style={{ animationDuration: '20s' }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 text-white">
-            <h1 className="text-4xl font-bold leading-tight">Hello, <br/>{user?.name}!</h1>
-            <p className="text-gray-200 mt-4 text-lg">Where do you want to go today?</p>
-            <button 
-              onClick={() => setPage("destinations")} 
-              className="mt-8 bg-blue-500 hover:bg-blue-600 text-white py-4 px-8 rounded-2xl font-bold text-center transition-all"
-            >
-              Explore Destinations
-            </button>
-            <div className="h-20" /> {/* Spacer for NavBar */}
-          </div>
-          <NavBar />
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {page === "home" && (
+          <motion.div 
+            key="home"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="relative h-screen w-full overflow-hidden"
+          >
+            {/* Background Image with subtle zoom scale animation */}
+            <motion.img
+              initial={{ scale: 1.2 }}
+              animate={{ scale: 1.05 }}
+              transition={{ duration: 10, ease: "easeOut" }}
+              src="https://images.unsplash.com/photo-1501785888041-af3ef285b470"
+              className="absolute w-full h-full object-cover"
+            />
+
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 text-white">
+              {/* Title sliding up */}
+              <motion.h1 
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+                className="text-4xl font-bold leading-tight"
+              >
+                Hello, <br/>{user?.name}!
+              </motion.h1>
+
+              {/* Subtitle sliding up slightly later */}
+              <motion.p 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                className="text-gray-200 mt-4 text-lg"
+              >
+                Where do you want to go today?
+              </motion.p>
+
+              {/* Interactive Button */}
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.7, duration: 0.6 }}
+                onClick={() => setPage("destinations")} 
+                className="mt-8 bg-blue-500 hover:bg-blue-600 text-white py-4 px-8 rounded-2xl font-bold text-center transition-all shadow-lg"
+              >
+                Explore Destinations
+              </motion.button>
+              
+              <div className="h-20" /> 
+            </div>
+            <NavBar />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* DESTINATIONS LIST PAGE */}
       {page === "destinations" && (
-        <div className="p-6 pb-24">
-          <header className="flex justify-between items-center mb-6">
+        <motion.div 
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+          className="p-6 pb-24"
+        >
+          {/* Header */}
+          <motion.header variants={itemVariants} className="flex justify-between items-center mb-6">
             <div>
               <p className="text-gray-500 text-sm">Discover</p>
               <h1 className="text-2xl font-bold">New Places</h1>
@@ -184,9 +304,10 @@ export default function App() {
             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
               {user?.name[0]}
             </div>
-          </header>
+          </motion.header>
 
-          <div className="relative mb-6">
+          {/* Search Bar */}
+          <motion.div variants={itemVariants} className="relative mb-6">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
@@ -195,28 +316,42 @@ export default function App() {
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-white border-none shadow-sm p-4 pl-12 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none"
             />
-          </div>
+          </motion.div>
 
-          <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+          {/* Categories */}
+          <motion.div variants={itemVariants} className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
             {["All", "Beach", "Mountain", "City"].map((cat) => (
-              <button key={cat} className={`px-6 py-2 rounded-full whitespace-nowrap ${cat === 'All' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500'}`}>
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
+                key={cat} 
+                className={`px-6 py-2 rounded-full whitespace-nowrap ${cat === 'All' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500'}`}
+              >
                 {cat}
-              </button>
+              </motion.button>
             ))}
-          </div>
+          </motion.div>
 
+          {/* Destinations List */}
           <div className="space-y-6">
             {filtered.map((d) => (
-              <div 
+              <motion.div 
                 key={d.id} 
+                variants={itemVariants} // Each card will now slide up in sequence
+                whileHover={{ y: -5 }} // Subtle lift on hover
+                whileTap={{ scale: 0.98 }}
                 onClick={() => { setSelectedDestination(d); setPage("details"); }}
-                className="relative group rounded-[2rem] overflow-hidden shadow-xl cursor-pointer active:scale-95 transition-all"
+                className="relative group rounded-[2rem] overflow-hidden shadow-xl cursor-pointer"
               >
                 <img src={d.images[0]} className="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                <button className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-white">
+                
+                <motion.button 
+                  whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.4)" }}
+                  className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-white"
+                >
                   <Heart size={20} />
-                </button>
+                </motion.button>
+
                 <div className="absolute bottom-6 left-6 text-white">
                   <div className="flex items-center gap-1 text-xs mb-1 opacity-80">
                     <MapPin size={12} /> {d.location}
@@ -224,39 +359,33 @@ export default function App() {
                   <h2 className="text-xl font-bold">{d.name}</h2>
                   <div className="flex items-center gap-2 mt-2">
                     <span className="bg-blue-500 px-2 py-1 rounded-lg text-xs font-bold italic">Top Choice</span>
-                    <span className="flex items-center gap-1 text-sm"><Star size={14} className="fill-yellow-400 text-yellow-400" /> {d.rating}</span>
+                    <span className="flex items-center gap-1 text-sm">
+                      <Star size={14} className="fill-yellow-400 text-yellow-400" /> {d.rating}
+                    </span>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
+          
           <NavBar />
-        </div>
+        </motion.div>
       )}
 
+    
       {/* DETAILS PAGE */}
-      {page === "details" && selectedDestination && (
-        <div className="animate-in slide-in-from-right duration-300">
-          <div className="relative h-[45vh]">
-            <img src={selectedDestination.images[0]} className="w-full h-full object-cover" />
-            <div className="absolute top-6 left-6 right-6 flex justify-between">
-              <button onClick={() => setPage("destinations")} className="p-3 bg-white/20 backdrop-blur-md rounded-xl text-white">
-                <ArrowLeft size={24} />
-              </button>
-              <button className="p-3 bg-white/20 backdrop-blur-md rounded-xl text-white">
-                <Heart size={24} />
-              </button>
-            </div>
+        {page === "details" && selectedDestination && (
+        <div className="bg-white min-h-screen pb-32">
+          <div className="relative h-[40vh] cursor-pointer" onClick={() => setFullScreenImage(selectedDestination.images[0])}>
+            <img src={selectedDestination.images[0]} className="w-full h-full object-cover" alt="Main" />
+            <button onClick={(e) => { e.stopPropagation(); setPage("destinations"); }} className="absolute top-6 left-6 p-3 bg-black/20 backdrop-blur-md rounded-xl text-white"><ArrowLeft size={24} /></button>
           </div>
-          
-          <div className="-mt-12 relative bg-white rounded-t-[3rem] p-8 min-h-[60vh] shadow-2xl">
-            <div className="flex justify-between items-start mb-4">
+
+          <div className="-mt-10 relative bg-white rounded-t-[2.5rem] p-8">
+            <div className="flex justify-between items-start mb-6">
               <div>
                 <h1 className="text-3xl font-bold">{selectedDestination.name}</h1>
-                <div className="flex items-center text-gray-500 gap-1 mt-1">
-                  <MapPin size={16} className="text-blue-500" />
-                  {selectedDestination.location}
-                </div>
+                <p className="text-gray-500 flex items-center gap-1 mt-1"><MapPin size={16} className="text-blue-500" /> {selectedDestination.location}</p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-blue-600">{selectedDestination.price}</p>
@@ -264,50 +393,136 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex gap-4 mb-8">
-               {selectedDestination.images.slice(1).map((img, i) => (
-                 <img key={i} src={img} className="w-20 h-20 rounded-2xl object-cover border-2 border-white shadow-md" />
-               ))}
-               <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 font-bold text-xs">
-                 +5 Photos
-               </div>
+            {/* GALLERY GRID */}
+            <h3 className="font-bold text-sm uppercase text-gray-400 tracking-widest mb-4">Gallery</h3>
+            <div className="grid grid-cols-4 gap-3 mb-8">
+              {selectedDestination.images.map((img, i) => (
+                <div key={i} onClick={() => setFullScreenImage(img)} className="aspect-square rounded-2xl overflow-hidden shadow-sm cursor-pointer border-2 border-white">
+                  <img src={img} className="w-full h-full object-cover" alt="gallery" />
+                </div>
+              ))}
+            </div>
+
+            <h3 className="font-bold text-lg mb-4">Location</h3>
+            <div className="h-64 w-full rounded-3xl overflow-hidden shadow-inner border-4 border-gray-50 z-0 relative">
+              <MapContainer 
+                center={selectedDestination.coordinates} 
+                zoom={13} 
+                scrollWheelZoom={false} 
+                style={{ height: '100%', width: '100%' }}
+              >
+                <TileLayer
+                  attribution='&copy; OpenStreetMap contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <Marker position={selectedDestination.coordinates}>
+                  <Popup>
+                    <span className="font-bold">{selectedDestination.name}</span> <br />
+                    {selectedDestination.location}
+                  </Popup>
+                </Marker>
+              </MapContainer>
             </div>
 
             <h3 className="font-bold text-lg mb-2">Overview</h3>
-            <p className="text-gray-500 leading-relaxed mb-8">
-              {selectedDestination.description}
-            </p>
+            <p className="text-gray-500 leading-relaxed mb-8">{selectedDestination.description}</p>
 
-            <button 
-              onClick={() => addBooking(selectedDestination)}
-              className="w-full bg-blue-600 text-white py-5 rounded-3xl font-bold text-lg shadow-xl shadow-blue-200 active:scale-95 transition-all"
-            >
-              Book Trip Now
-            </button>
+            {/* REVIEW SECTION */}
+            <div className="border-t pt-8">
+              <h3 className="font-bold text-xl mb-4">Reviews</h3>
+              <div className="bg-gray-50 p-6 rounded-3xl mb-8">
+                <div className="flex gap-2 mb-4">
+                  {[1,2,3,4,5].map(s => <Star key={s} size={24} onClick={() => setNewRating(s)} className={`cursor-pointer ${s <= newRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />)}
+                </div>
+                <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Write a review..." className="w-full p-4 rounded-xl border-none ring-1 ring-gray-200 outline-none h-20 text-sm mb-4" />
+                <button onClick={handleAddReview} className="bg-slate-900 text-white px-6 py-2 rounded-xl text-sm font-bold">Post Review</button>
+              </div>
+
+              <div className="space-y-6">
+                {comments.filter(c => c.destinationId === selectedDestination.id).reverse().map(review => (
+                  <div key={review.id} className="border-b border-gray-100 pb-4">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-bold text-sm">{review.userName}</span>
+                      <div className="flex gap-1">
+                        {[...Array(5)].map((_, i) => <Star key={i} size={10} className={i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"} />)}
+                      </div>
+                    </div>
+                    <p className="text-gray-600 text-sm">{review.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button onClick={() => addBooking(selectedDestination)} className="w-full bg-blue-600 text-white py-5 rounded-3xl font-bold mt-8 shadow-xl active:scale-95 transition-all">Book Trip Now</button>
           </div>
         </div>
       )}
 
+
       {/* OTHER PAGES (Bookings/Profile) can follow similar card-based styling */}
       {page === "bookings" && (
-        <div className="p-8">
-           <h1 className="text-2xl font-bold mb-6">My Bookings</h1>
-           {bookings.length === 0 ? (
-             <div className="text-center py-20 text-gray-400">No trips planned yet.</div>
-           ) : (
-             bookings.map((b, i) => (
-               <div key={i} className="flex gap-4 bg-white p-4 rounded-3xl shadow-sm mb-4">
-                 <img src={b.images[0]} className="w-24 h-24 rounded-2xl object-cover" />
-                 <div>
-                    <h3 className="font-bold">{b.name}</h3>
-                    <p className="text-sm text-gray-500">{b.location}</p>
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-md mt-2 inline-block">Confirmed</span>
-                 </div>
-               </div>
-             ))
-           )}
-           <NavBar />
-        </div>
+        <motion.div 
+          key="bookings"
+          initial="hidden"
+          animate="visible"
+          exit={{ opacity: 0, x: -20 }}
+          variants={containerVariants}
+          className="p-8 pb-32" // Added extra bottom padding so the last card isn't hidden by NavBar
+        >
+        <motion.h1 
+          variants={itemVariants} 
+          className="text-2xl font-bold mb-6"
+        >
+         My Bookings
+        </motion.h1>
+
+        {bookings.length === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-center py-20 text-gray-400"
+          >
+            <div className="text-4xl mb-4">✈️</div>
+            No trips planned yet.
+          </motion.div>
+        ) : (
+          <div className="space-y-4">
+            {bookings.map((b, i) => (
+              <motion.div 
+                key={`${b.id}-${i}`} // Using ID + index for a unique key
+                variants={itemVariants}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex gap-4 bg-white p-4 rounded-3xl shadow-sm border border-gray-100"
+              >
+                <motion.img 
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: i * 0.1 + 0.2 }}
+                  src={b.images[0]} 
+                  className="w-24 h-24 rounded-2xl object-cover" 
+                />
+                <div className="flex flex-col justify-center">
+                  <h3 className="font-bold text-slate-800">{b.name}</h3>
+                  <p className="text-sm text-gray-500 flex items-center gap-1">
+                    <MapPin size={12} /> {b.location}
+                  </p>
+                  <motion.span 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 + 0.4 }}
+                    className="text-[10px] uppercase tracking-wider bg-green-100 text-green-700 px-2 py-1 rounded-lg mt-2 font-bold inline-block w-fit"
+                  >
+                    Confirmed
+                  </motion.span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+          <NavBar />
+        </motion.div>
       )}
       {/* PROFILE PAGE */}
       {page === "profile" && (
