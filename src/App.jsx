@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MapPin, Search, Star, ArrowLeft, Heart, Navigation, User, Home, BookOpen, Share2, Wallet, Clock, CloudSun, Calendar, Zap, Info, Trash2, MessageCircle, MoreHorizontal, ThumbsUp, X, Send } from "lucide-react";
+import { MapPin, Search, Star, ArrowLeft, Heart, Navigation, User, Home, BookOpen, Hotel, Share2, Wallet, Clock, CloudSun, Calendar, Zap, Info, Trash2, MessageCircle, MoreHorizontal, ThumbsUp, X, Send, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -16,106 +16,12 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-import img1 from './img/inn1.png';
-import inn2 from './img/inn2.png';
-import inn3 from './img/inn3.png';
-import img11 from './img/img11.jpg';
-import img12 from './img/img12.jpg';
-import img31 from './img/img31.jpg';
-import img32 from './img/img32.png';
+import { destinationsData } from "./data/DestinationData";
+import { trendSpotData } from "./data/TrendSpotData";
 
 
-const destinationsData = [
-  {
-    // FIX: Match this ID with the destinationId in your trendSpotData
-    id: "mabaho-001", 
-    name: "Hidden Nav's Inn",
-    location: "Cabadbaran, Agusan del Norte",
-    rating: 4.9,
-    price: "₱2,500",
-    coordinates: [9.130966158730411, 125.53983102062428],
-    description: "The perfect place to rest after exploring Agusan. Offers cozy rooms and a quiet atmosphere.",
-    images: [img1, inn2, inn3],
-    
-    // NEW FIELDS
-    tagline: "Your Home in Cabadbaran",
-    duration: "1-2 Days",
-    bestTime: "Anytime",
-    weather: "28°C Sunny",
-    
-    activities: [
-      { name: "Swimming", icon: "Zap" },
-      { name: "Netflix & Chill", icon: "Tv" }, // Updated icon to Tv
-      { name: "City Tour", icon: "Map" }
-    ],
-    
-    budgetDetails: {
-      accommodation: "₱1,500 - ₱5,000",
-      food: "₱800/day",
-      activities: "₱500"
-    },
-    
-    nearbyHotels: [
-      { name: "Filipinas Heritage", price: "Luxury", rating: 5 },
-      { name: "Cabadbaran Pension", price: "Budget", rating: 4.2 }
-    ],
-  },
-  {
-    id: "puting-bato", // Changed to string for consistency
-    name: "The Puting Bato",
-    location: "Cabadbaran, Agusan del Norte",
-    rating: 4.8,
-    price: "₱200",
-    description: "The area is home to natural water features, including the Tumipi Cold Spring and a breathtaking view deck.",
-    images: [img11, img12],
-    tagline: "Reach the White Peak",
-    duration: "1 Day",
-    activities: [
-      { name: "Hiking", icon: "Zap" },
-      { name: "Sightseeing", icon: "Navigation" }
-    ]
-  },
-  {
-    id: "tagnote-falls", // Changed to string for consistency
-    name: "Tagnote Falls",
-    location: "RTR, Agusan del Norte",
-    rating: 4.7,
-    price: "₱100",
-    description: "A hidden gem in RTR. Perfect for a cool dip and family picnics under the canopy of trees.",
-    images: [img32, img31],
-    tagline: "Nature's Cold Shower",
-    duration: "1 Day",
-    activities: [
-      { name: "Swimming", icon: "Zap" },
-      { name: "Picnic", icon: "Map" }
-    ]
-  }
-];
 
-const trendSpotData = [
-  {
-    id: 1,
-    destinationId: "mabaho-001", // This must match an ID in your destinationsData
-    author: "Hidden Nav's Inn",
-    location: "Cabadbaran City",
-    caption: "The nice place to sleep proven and tested HAHAHA",
-    image: img1,
-    likes: "2.1k",
-    comments: 112,
-    time: "45m"
-  },
-  {
-    id: 2,
-    destinationId: "heritage-002",
-    author: "Heritage Agusan",
-    location: "Filipinas Heritage, Cabadbaran",
-    caption: "Stepping back in time. 🏛️ Cabadbaran's heritage houses are a beautiful reminder of our rich history. #CabadbaranHeritage",
-    image: "https://images.unsplash.com/photo-1518780664697-55e3ad937233",
-    likes: "945",
-    comments: 54,
-    time: "3h"
-  }
-];
+
 
 
 export default function App() {
@@ -129,6 +35,7 @@ export default function App() {
   const [newComment, setNewComment] = useState("");
   const [newRating, setNewRating] = useState(5); // Default to 5 stars
   const [fullScreenImage, setFullScreenImage] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
 
 // Update your useEffect to filter comments based on the selected destination
@@ -190,9 +97,14 @@ useEffect(() => {
     localStorage.setItem("bookings", JSON.stringify(updatedBookings));
   };
 
-  const filtered = destinationsData.filter((d) =>
-    d.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = destinationsData.filter((d) => {
+    const matchesSearch = d.name.toLowerCase().includes(search.toLowerCase()) || 
+                          d.location.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesCategory = selectedCategory === "All" || d.category === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
   
   const handleAddReview = () => {
     if (!newComment.trim()) return alert("Please write a comment");
@@ -305,6 +217,19 @@ useEffect(() => {
       localStorage.setItem("theme", "light");
     }
   }, [darkMode]);
+
+
+  const getButtonText = (dest) => {
+    if (dest.ctaText) return dest.ctaText; // Use manual text if it exists
+    
+    switch (dest.category?.toLowerCase()) {
+      case 'mountain': return 'Trip Now';
+      case 'restaurant': return 'Reserve Now';
+      case 'cafe': return 'Reserve Now';
+      case 'hotel': return 'Book Room';
+      default: return 'Explore Now';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
@@ -511,16 +436,17 @@ useEffect(() => {
 
         {/* Categories */}
         <motion.div variants={itemVariants} className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-          {["All", "Beach", "Mountain", "City"].map((cat) => (
+          {["All", "Beach", "Mountain", "Hotel", "Restaurant", "Cafe"].map((cat) => (
             <motion.button 
               whileTap={{ scale: 0.9 }}
               key={cat} 
-              className={`px-6 py-2 rounded-full whitespace-nowrap transition-colors ${
-                cat === 'All' 
-                  ? 'bg-blue-600 text-white' 
+              onClick={() => setSelectedCategory(cat)} // Add this click handler
+              className={`px-6 py-2 rounded-full whitespace-nowrap transition-colors font-bold text-sm ${
+                selectedCategory === cat 
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' 
                   : darkMode 
-                    ? 'bg-slate-800 text-gray-400' 
-                    : 'bg-white text-gray-500'
+                    ? 'bg-slate-800 text-gray-400 border border-slate-700' 
+                    : 'bg-white text-gray-500 border border-gray-100 shadow-sm'
               }`}
             >
               {cat}
@@ -873,36 +799,7 @@ useEffect(() => {
           </div>
 
           {/* 6. BUDGET BREAKDOWN CARD (Now Dynamic) */}
-          <div className={`p-7 rounded-[2.5rem] mb-10 transition-all ${
-            darkMode ? "bg-blue-600/10 border border-blue-500/20" : "bg-blue-50/50 border border-blue-100"
-          }`}>
-            <h3 className="text-lg font-black mb-4 flex items-center gap-2 text-blue-500">
-              <Info size={20} /> Budget Estimator
-            </h3>
-            <div className="space-y-4">
-              <div className="flex justify-between text-sm">
-                <span className={darkMode ? "text-gray-400" : "text-gray-500"}>Accommodation</span>
-                {/* Pulls from the data or shows a fallback */}
-                <span className="font-bold">
-                  {selectedDestination.budgetDetails?.accommodation || "₱1,000 - ₱2,000"}
-                </span>
-              </div>
-              
-              <div className="flex justify-between text-sm">
-                <span className={darkMode ? "text-gray-400" : "text-gray-500"}>Daily Food</span>
-                <span className="font-bold">
-                  {selectedDestination.budgetDetails?.food || "₱500/day"}
-                </span>
-              </div>
-
-              <div className={`flex justify-between text-base border-t pt-3 mt-3 ${darkMode ? "border-slate-700" : "border-blue-100"}`}>
-                <span className="font-black">Total Est.</span>
-                <span className="font-black text-blue-600">
-                  {selectedDestination.price}
-                </span>
-              </div>
-            </div>
-          </div>
+        
 
           {/* 📍 7. MAP SECTION */}
           <motion.h3 className="font-black text-xl mb-4">Location</motion.h3>
@@ -926,6 +823,87 @@ useEffect(() => {
               </Marker>
             </MapContainer>
           </motion.div>
+
+          {/* 🚌 TRANSPORTATION SECTION */}
+          <div className="mb-10">
+            <h3 className="text-xl font-black mb-5">How to Get There</h3>
+            <div className="space-y-4">
+              {selectedDestination.transportation?.map((route, i) => (
+                <motion.div 
+                  key={i}
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className={`p-5 rounded-[2rem] border transition-all ${
+                    darkMode ? "bg-slate-800/40 border-slate-700" : "bg-white border-gray-100 shadow-sm"
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-blue-500/10 text-blue-500 rounded-2xl">
+                      <Navigation size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] uppercase text-blue-500 font-bold tracking-widest mb-1">
+                        From {route.from}
+                      </p>
+                      <div className="flex justify-between items-center mb-2">
+                        <h4 className="font-bold text-sm">{route.type}</h4>
+                        <span className="text-xs font-black text-green-500">{route.cost}</span>
+                      </div>
+                      <p className={`text-xs leading-relaxed ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                        {route.instructions}
+                      </p>
+                      <div className="flex items-center gap-1 mt-3 text-[10px] font-bold text-gray-400">
+                        <Clock size={12} /> Est. {route.duration}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )) || (
+                <p className="text-gray-500 text-sm italic">Transportation details coming soon...</p>
+              )}
+            </div>
+          </div>
+
+          {/* 🏨 NEARBY ACCOMMODATIONS */}
+          <div className="mb-10">
+            <h3 className="text-xl font-black mb-5">Nearby Accommodations</h3>
+            <div className="space-y-4">
+              {selectedDestination.nearbyHotels?.map((hotel, i) => (
+                <motion.div 
+                  key={i}
+                  initial={{ y: 20, opacity: 0 }}
+                  whileInView={{ y: 0, opacity: 1 }}
+                  viewport={{ once: true }}
+                  className={`p-5 rounded-[2.5rem] border flex items-center justify-between transition-all ${
+                    darkMode ? "bg-slate-800/40 border-slate-700" : "bg-white border-gray-100 shadow-sm"
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-purple-500/10 text-purple-500 rounded-2xl">
+                      <Hotel size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm">{hotel.name}</h4>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{hotel.price}</span>
+                        <span className="text-[10px] text-gray-400">•</span>
+                        <div className="flex items-center gap-0.5">
+                          <Star size={10} className="fill-yellow-400 text-yellow-400" />
+                          <span className="text-[10px] font-bold text-gray-500">{hotel.rating}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button className="text-blue-500 p-2 hover:bg-blue-500/10 rounded-full transition-colors">
+                    <ChevronRight size={20} />
+                  </button>
+                </motion.div>
+              )) || (
+                <p className="text-gray-500 text-sm italic">Looking for nearby stays...</p>
+              )}
+            </div>
+          </div>
 
           {/* 8. OVERVIEW */}
           <div className="mb-10">
@@ -1003,9 +981,7 @@ useEffect(() => {
         </motion.div>
 
         {/* 10. STICKY BOOKING BAR */}
-        <div className={`fixed bottom-0 left-0 right-0 p-6 border-t backdrop-blur-xl transition-all z-50 ${
-          darkMode ? "bg-slate-900/90 border-slate-800" : "bg-white/90 border-gray-100"
-        }`}>
+        <div className={`fixed bottom-0 left-0 right-0 p-6 ...`}>
           <div className="max-w-md mx-auto flex items-center justify-between gap-6">
             <div>
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Starting from</p>
@@ -1017,7 +993,8 @@ useEffect(() => {
               onClick={() => addBooking(selectedDestination)}
               className="bg-blue-600 text-white px-10 py-4 rounded-[2.5rem] font-black text-sm shadow-xl shadow-blue-500/30"
             >
-              Book Now
+              {/* UPDATE THIS LINE BELOW */}
+              {getButtonText(selectedDestination)}
             </motion.button>
           </div>
         </div>
